@@ -9,6 +9,9 @@ using namespace v8;
 using namespace node;
 
 #include <iostream>
+#include <sstream>
+#include <string>
+
 using namespace std;
 
 namespace glfw {
@@ -380,6 +383,66 @@ JS_METHOD(DefaultWindowHints) {
   HandleScope scope;
   glfwDefaultWindowHints();
   return scope.Close(Undefined());
+}
+
+JS_METHOD(JoystickPresent) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  bool isPresent = glfwJoystickPresent(joy);
+  return scope.Close(JS_BOOL(isPresent));
+}
+
+std::string intToString(int number) {
+  std::ostringstream buff;
+  buff << number;
+  return buff.str();
+}
+
+std::string floatToString(float number){
+    std::ostringstream buff;
+    buff<<number;
+    return buff.str();
+}
+
+std::string buttonToString(unsigned char c) {
+  int number = (int)c;
+  return intToString(number);
+}
+
+JS_METHOD(GetJoystickAxes) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  int count;
+  const float *axisValues = glfwGetJoystickAxes(joy, &count);
+  string response = "";
+  for (int i = 0; i < count; i++) {
+    response.append(floatToString(axisValues[i]));
+    response.append(","); //Separator
+  }
+
+  return scope.Close(JS_STR(response.c_str()));
+}
+
+JS_METHOD(GetJoystickButtons) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  int count = 0;
+  const unsigned char* response = glfwGetJoystickButtons(joy, &count);
+
+  string strResponse = "";
+  for (int i = 0; i < count; i++) {
+    strResponse.append(buttonToString(response[i]));
+    strResponse.append(",");
+  }
+
+  return scope.Close(JS_STR(strResponse.c_str()));
+}
+
+JS_METHOD(GetJoystickName) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  const char* response = glfwGetJoystickName(joy);
+  return scope.Close(JS_STR(response));
 }
 
 JS_METHOD(CreateWindow) {
@@ -782,6 +845,12 @@ void init(Handle<Object> target) {
   JS_GLFW_SET_METHOD(SwapBuffers);
   JS_GLFW_SET_METHOD(SwapInterval);
   JS_GLFW_SET_METHOD(ExtensionSupported);
+
+  /* Joystick */
+  JS_GLFW_SET_METHOD(JoystickPresent);
+  JS_GLFW_SET_METHOD(GetJoystickAxes);
+  JS_GLFW_SET_METHOD(GetJoystickButtons);
+  JS_GLFW_SET_METHOD(GetJoystickName);
 
   /*************************************************************************
    * GLFW version
