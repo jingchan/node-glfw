@@ -342,6 +342,47 @@ void APIENTRY scrollCB(GLFWwindow *window, double xoffset, double yoffset) {
   }
 }
 
+JS_METHOD(testJoystick) {
+  HandleScope scope;
+
+  int width = args[0]->Uint32Value();
+  int height = args[1]->Uint32Value();
+  float ratio = width / (float) height;
+
+  float translateX = args[2]->NumberValue();
+  float translateY = args[3]->NumberValue();
+  float translateZ = args[4]->NumberValue();
+
+  float rotateX = args[5]->NumberValue();
+  float rotateY = args[6]->NumberValue();
+  float rotateZ = args[7]->NumberValue();
+
+  float angle = args[8]->NumberValue();
+
+  glViewport(0, 0, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+  glMatrixMode(GL_MODELVIEW);
+
+  glLoadIdentity();
+  glRotatef(angle, rotateX, rotateY, rotateZ);
+  glTranslatef(translateX, translateY, translateZ);
+
+  glBegin(GL_TRIANGLES);
+  glColor3f(1.f, 0.f, 0.f);
+  glVertex3f(-0.6f, -0.4f, 0.f);
+  glColor3f(0.f, 1.f, 0.f);
+  glVertex3f(0.6f, -0.4f, 0.f);
+  glColor3f(0.f, 0.f, 1.f);
+  glVertex3f(0.f, 0.6f, 0.f);
+  glEnd();
+
+  return scope.Close(Undefined());
+}
+
 JS_METHOD(testScene) {
   HandleScope scope;
   int width = args[0]->Uint32Value();
@@ -1138,6 +1179,7 @@ void init(Handle<Object> target) {
 
   // test scene
   JS_GLFW_SET_METHOD(testScene);
+  JS_GLFW_SET_METHOD(testJoystick);
 }
 
 NODE_MODULE(glfw, init)
