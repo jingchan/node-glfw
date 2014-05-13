@@ -9,6 +9,9 @@ using namespace v8;
 using namespace node;
 
 #include <iostream>
+#include <sstream>
+#include <string>
+
 using namespace std;
 
 namespace glfw {
@@ -339,6 +342,47 @@ void APIENTRY scrollCB(GLFWwindow *window, double xoffset, double yoffset) {
   }
 }
 
+JS_METHOD(testJoystick) {
+  HandleScope scope;
+
+  int width = args[0]->Uint32Value();
+  int height = args[1]->Uint32Value();
+  float ratio = width / (float) height;
+
+  float translateX = args[2]->NumberValue();
+  float translateY = args[3]->NumberValue();
+  float translateZ = args[4]->NumberValue();
+
+  float rotateX = args[5]->NumberValue();
+  float rotateY = args[6]->NumberValue();
+  float rotateZ = args[7]->NumberValue();
+
+  float angle = args[8]->NumberValue();
+
+  glViewport(0, 0, width, height);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+  glMatrixMode(GL_MODELVIEW);
+
+  glLoadIdentity();
+  glRotatef(angle, rotateX, rotateY, rotateZ);
+  glTranslatef(translateX, translateY, translateZ);
+
+  glBegin(GL_TRIANGLES);
+  glColor3f(1.f, 0.f, 0.f);
+  glVertex3f(-0.6f, -0.4f, 0.f);
+  glColor3f(0.f, 1.f, 0.f);
+  glVertex3f(0.6f, -0.4f, 0.f);
+  glColor3f(0.f, 0.f, 1.f);
+  glVertex3f(0.f, 0.6f, 0.f);
+  glEnd();
+
+  return scope.Close(Undefined());
+}
+
 JS_METHOD(testScene) {
   HandleScope scope;
   int width = args[0]->Uint32Value();
@@ -380,6 +424,66 @@ JS_METHOD(DefaultWindowHints) {
   HandleScope scope;
   glfwDefaultWindowHints();
   return scope.Close(Undefined());
+}
+
+JS_METHOD(JoystickPresent) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  bool isPresent = glfwJoystickPresent(joy);
+  return scope.Close(JS_BOOL(isPresent));
+}
+
+std::string intToString(int number) {
+  std::ostringstream buff;
+  buff << number;
+  return buff.str();
+}
+
+std::string floatToString(float number){
+    std::ostringstream buff;
+    buff<<number;
+    return buff.str();
+}
+
+std::string buttonToString(unsigned char c) {
+  int number = (int)c;
+  return intToString(number);
+}
+
+JS_METHOD(GetJoystickAxes) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  int count;
+  const float *axisValues = glfwGetJoystickAxes(joy, &count);
+  string response = "";
+  for (int i = 0; i < count; i++) {
+    response.append(floatToString(axisValues[i]));
+    response.append(","); //Separator
+  }
+
+  return scope.Close(JS_STR(response.c_str()));
+}
+
+JS_METHOD(GetJoystickButtons) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  int count = 0;
+  const unsigned char* response = glfwGetJoystickButtons(joy, &count);
+
+  string strResponse = "";
+  for (int i = 0; i < count; i++) {
+    strResponse.append(buttonToString(response[i]));
+    strResponse.append(",");
+  }
+
+  return scope.Close(JS_STR(strResponse.c_str()));
+}
+
+JS_METHOD(GetJoystickName) {
+  HandleScope scope;
+  int joy = args[0]->Uint32Value();
+  const char* response = glfwGetJoystickName(joy);
+  return scope.Close(JS_STR(response));
 }
 
 JS_METHOD(CreateWindow) {
@@ -783,6 +887,12 @@ void init(Handle<Object> target) {
   JS_GLFW_SET_METHOD(SwapInterval);
   JS_GLFW_SET_METHOD(ExtensionSupported);
 
+  /* Joystick */
+  JS_GLFW_SET_METHOD(JoystickPresent);
+  JS_GLFW_SET_METHOD(GetJoystickAxes);
+  JS_GLFW_SET_METHOD(GetJoystickButtons);
+  JS_GLFW_SET_METHOD(GetJoystickName);
+
   /*************************************************************************
    * GLFW version
    *************************************************************************/
@@ -1069,6 +1179,7 @@ void init(Handle<Object> target) {
 
   // test scene
   JS_GLFW_SET_METHOD(testScene);
+  JS_GLFW_SET_METHOD(testJoystick);
 }
 
 NODE_MODULE(glfw, init)

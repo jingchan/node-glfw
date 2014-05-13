@@ -16,15 +16,15 @@
       ],
       'sources': [ 'src/atb.cc', 'src/glfw.cc' ],
       'include_dirs': [
-        '<(module_root_dir)/deps/include',
+        '<(module_root_dir)/node_modules/node-glfw-deps/include',
       ],
       'library_dirs': [
-        '<(module_root_dir)/deps/<(platform)',
+        '<(module_root_dir)/node_modules/node-glfw-deps/<(platform)',
       ],
       'conditions': [
         ['OS=="linux"', {'libraries': ['-lAntTweakBar', '<!@(pkg-config --libs glfw3 glew)']}],
         ['OS=="mac"', {
-          'libraries': ['<(module_root_dir)/deps/darwin/libglfw3.a','-lAntTweakBar', '-lGLEW', '-framework OpenGL']
+          'libraries': ['<(module_root_dir)/node_modules/node-glfw-deps/darwin/libglfw3.a','-lAntTweakBar', '-lGLEW', '-framework OpenGL']
         }],
         ['OS=="win"', {
           'libraries': [

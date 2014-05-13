@@ -29,8 +29,10 @@
        "node": "0.6.5-0.11.3"
    },
    "scripts": {
-       "install": "node-gyp rebuild"
+       "postinstall": "node-gyp rebuild"
    },
-  "dependencies": { }
+  "dependencies": {
+    "node-glfw-deps": "floored/node-native-graphics-deps"
+  }
 }
 
