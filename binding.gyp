@@ -21,7 +21,7 @@
         './deps/include',
       ],
       'conditions': [
-        ['OS=="linux"', {'libraries': ['-lAntTweakBar', '<!@(pkg-config --libs glfw3 glew)']}],
+        ['OS=="linux"', {'libraries': ['-lAntTweakBar', '<!@(pkg-config --libs glfw3 glew)', '-lXrandr', '-lXinerama', '-lXi', '-lXxf86vm', '-lXcursor']}],
         ['OS=="mac"', {
           'libraries': ['-lAntTweakBar', '-lglfw3', '-lGLEW', '-framework OpenGL'],
           'include_dirs': ['/usr/local/include'],
